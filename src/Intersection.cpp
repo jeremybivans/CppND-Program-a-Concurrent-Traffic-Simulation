@@ -72,7 +72,7 @@ std::vector<std::shared_ptr<Street>> Intersection::queryStreets(std::shared_ptr<
 // adds a new vehicle to the queue and returns once the vehicle is allowed to enter
 void Intersection::addVehicleToQueue(std::shared_ptr<Vehicle> vehicle)
 {
-    std::unique_lock<std::mutex> lck(_mtx);
+    std::unique_lock<std::mutex> lck(_mutex);
     std::cout << "Intersection #" << _id << "::addVehicleToQueue: thread id = " << std::this_thread::get_id() << std::endl;
     lck.unlock();
 
@@ -84,8 +84,10 @@ void Intersection::addVehicleToQueue(std::shared_ptr<Vehicle> vehicle)
     // wait until the vehicle is allowed to enter
     ftrVehicleAllowedToEnter.wait();
     lck.lock();
+
     std::cout << "Intersection #" << _id << ": Vehicle #" << vehicle->getID() << " is granted entry." << std::endl;
-    
+
+    lck.unlock();
   	
     // FP.6b : use the methods TrafficLight::getCurrentPhase and TrafficLight::waitForGreen to block the execution until the traffic light turns green.
 	while (_trafficLight.getCurrentPhase() != TrafficLightPhase::green) {
@@ -94,9 +96,32 @@ void Intersection::addVehicleToQueue(std::shared_ptr<Vehicle> vehicle)
     
     }
     
-  	lck.unlock();
+
   
 }
+
+/*void Intersection::addVehicleToQueue(std::shared_ptr<Vehicle> vehicle)
+{
+    std::unique_lock<std::mutex> lck(_mtx);
+    std::cout << "Intersection #" << _id << "::addVehicleToQueue: thread id = " << std::this_thread::get_id() << std::endl;
+    lck.unlock();
+
+    // add new vehicle to the end of the waiting line
+    std::promise<void> promiseVehicleAllowed;
+    std::future<void> futureVehicleAllowed = promiseVehicleAllowed.get_future();
+    _waitingVehicles.pushBack(vehicle, std::move(promiseVehicleAllowed));
+
+    // wait until the vehicle is allowed to enter
+    futureVehicleAllowed.wait();
+    lck.lock();
+    std::cout << "Intersection #" << _id << ": Vehicle #" << vehicle->getID() << " is granted entry." << std::endl;
+
+    lck.unlock();
+
+    while (_trafficLight.getCurrentPhase() != TrafficLightPhase::green) {
+        _trafficLight.waitForGreen();
+    }
+}*/
 
 void Intersection::vehicleHasLeft(std::shared_ptr<Vehicle> vehicle)
 {
@@ -154,5 +179,5 @@ bool Intersection::trafficLightIsGreen()
        return false;
    
 
-  return true; // makes traffic light permanently green
+  //return true; // makes traffic light permanently green
 } 
