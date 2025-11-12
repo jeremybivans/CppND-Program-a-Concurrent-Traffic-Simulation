@@ -1,3 +1,5 @@
+Built a multithreaded C++ traffic simulator on a real city map (Paris) with 9 intersections and 8 streets, handling 6 concurrent vehicles across 16+ threads (vehicle, traffic-light, and GUI threads).
+Implemented a thread-safe message queue (mutex + condition_variable, move semantics) to coordinate traffic lights (4–6s randomized cycles; 1ms loop granularity) and block-until-green vehicle flow, achieving collision-free operation under continuous load.
 # CPPND: Program a Concurrent Traffic Simulation
 
 <img src="data/traffic_simulation.gif"/>
